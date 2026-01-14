@@ -1,6 +1,11 @@
 import os
+from typing import List
 
-def read_files(repo_path):
+DEFAULT_CHUNK_SIZE = 1000
+DEFAULT_CHUNK_OVERLAP = 200
+
+def read_files(repo_path: str) -> List[str]:
+    """Return list of source file paths (skip node_modules and .git)."""
     files = []
 
     for root, dirs, filenames in os.walk(repo_path):
@@ -8,17 +13,25 @@ def read_files(repo_path):
             continue
 
         for file in filenames:
-            if file.endwith((".js" , ".py", ".java", ".md")):
+            if file.endswith((".js", ".ts", ".py", ".java", ".cpp", ".c", ".md")):
                 files.append(os.path.join(root, file))
     
     return files
 
-def chunk_code(file_path, chunk_size= 400):
+def chunk_code(file_path: str, chunk_size: int = DEFAULT_CHUNK_SIZE, overlap: int = DEFAULT_CHUNK_OVERLAP) -> List[str]:
+    """Return list of text chunks for a single file."""
     with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
         text = f.read()
 
-    chunks = []
-    for i in range(0, len(text), chunk_size):
-        chunks.append(tect[i: i+chunk_size])
+    if not text:
+        return []
 
+    chunks = []
+    start = 0
+    text_len = len(text)
+    while start < text_len:
+        end = start + chunk_size
+        chunk = text[start:end]
+        chunks.append(chunk)
+        start = max(end - overlap, end) if overlap < chunk_size else end
     return chunks

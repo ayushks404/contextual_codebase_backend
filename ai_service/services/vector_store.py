@@ -1,27 +1,37 @@
 import faiss
 import os
 import pickle
+import numpy as np
 
 VECTOR_SIZE = 384
 BASE_PATH = "./storage/indexes"
 
-def save_index(project_id, vectors, metadata):
-    
-    index = faiss.IndexFlatL2(VECTOR_SIZE)
-    index.add(vectors)
-
+def save_index(project_id: str, vectors: np.ndarray, metadata: list):
+    """
+    Save FAISS index and metadata for project_id.
+    vectors: numpy array shape (n, dim), dtype float32
+    metadata: list of dicts (one per vector)
+    """
     os.makedirs(BASE_PATH, exist_ok=True)
 
-    faiss.write_index(index, f"{BASE_PATH}/{project_id}.index")
+    n, dim = vectors.shape
+    index = faiss.IndexFlatL2(dim)
+    index.add(vectors)
 
-    with open(f"{BASE_PATH}/{project_id}.meta", "wb") as f:
+    faiss.write_index(index, os.path.join(BASE_PATH, f"{project_id}.index"))
+
+    with open(os.path.join(BASE_PATH, f"{project_id}.meta"), "wb") as f:
         pickle.dump(metadata, f)
 
+def load_index(project_id: str):
+    idx_path = os.path.join(BASE_PATH, f"{project_id}.index")
+    meta_path = os.path.join(BASE_PATH, f"{project_id}.meta")
 
-def load_index(project_id):
-    index = faiss.read_index(f"{BASE_PATH}/{project_id}.index")
+    if not os.path.exists(idx_path) or not os.path.exists(meta_path):
+        raise FileNotFoundError("Index or metadata not found for project_id: " + project_id)
 
-    with open(f"{BASE_PATH}/{project_id}.meta", "rb") as f:
+    index = faiss.read_index(idx_path)
+    with open(meta_path, "rb") as f:
         metadata = pickle.load(f)
 
     return index, metadata
