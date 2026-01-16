@@ -14,17 +14,17 @@ export const register = async (req , res) => {
         if (!name || !email || !password) {
             return res.status(400).json({ message: "Please provide all fields" });
         }
-        const userExists = await user.findOne({ email });
+        const userExists = await User.findOne({ email });
         if (userExists) {
             return res.status(400).json({ message: "User already exists" });
         }
 
-        const hashpassword = await bycrypt.hash(password , 10);
+        const hashpassword = await bcrypt.hash(password , 10);
 
         const user = await User.create({
             name,
             email,
-            passwordhash : hashpassword,
+            password : hashpassword,
         });
         res.status(201).json({
             _id: user.id,
@@ -47,10 +47,12 @@ export const login = async (req , res) => {
     try{
         const {email , password} = req.body;
 
-        const user = await user.findOne({email});
+        const user = await User.findOne({email});
 
         if(user){
-            if(await bcrypt.compare(password, user.passwordHash) ){
+                const match = await bcrypt.compare(password, user.password);
+
+            if(match ){
 
                 res.json({
                     _id : user.id,
@@ -58,6 +60,9 @@ export const login = async (req , res) => {
                     email : user.email,
                     token : generateToken(user.id),
                 });
+            }
+            else{
+                return res.status(401).json({ message: "Invalid credentials" });
             }
 
         }

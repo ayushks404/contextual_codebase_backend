@@ -1,48 +1,44 @@
-import query from "../models/query.js";
+import Query from "../models/query.js";
+import axios from "axios";
 
+export const ask_ques = async (req, res) => {
+  try {
+    const { project_id, question } = req.body;
 
-export const ask_ques = async (req,res) => {
-
-    try{
-        const { project_id, question } = req.body;
-
-        if(!project_id|| !question){
-            return res.status(400).json({
-                message: "Project ID and question are required" 
-            });
-        }
-
-        
-
-        //sending query
-        const airesponse = await axios.post("http://localhost:8000/query", {
-            project_id,
-            question
-        });
-        //get ans and sources as res 
-        const res = {
-            ans: airesponse.data.ans,
-            sources: airesponse.data.sources
-        };
-
-        await query.create({
-            project_id,
-            userId: req.user.id,
-            question,
-            ans:res.ans,
-            sources: result.sources
-        });
-
-        res.json({
-            res
-        });
+    if (!project_id || !question) {
+      return res.status(400).json({
+        message: "Project ID and question are required",
+      });
     }
 
-    catch (err){
-        console.log("querry err", err.message);
-        res.status(500).json({ message: "cant post querry or get res from ai "});
-    }
+    // Call AI service
+    const airesponse = await axios.post("http://localhost:8000/query", {
+      project_id,
+      question,
+    });
 
+    // Normalize AI response
+    const result = {
+      answer: airesponse.data.answer || airesponse.data.ans || airesponse.data.response,
+      sources: airesponse.data.sources || [],
+    };
 
+    // Save query
+    await Query.create({
+      projectId: project_id,
+      userId: req.user._id,
+      question,
+      answer: result.answer,
+      sources: result.sources,
+    });
+
+    // Send response
+    return res.json(result);
+
+  } catch (err) {
+    console.error("query err", err);
+    return res.status(500).json({
+      message: "Cannot process query",
+    });
+  }
 };
-

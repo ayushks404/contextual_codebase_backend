@@ -5,7 +5,7 @@ const projectschema = new mongoose.Schema({
             type:String,
             required: true,
         },
-        repoUrl: {
+        repourl: {
             type: String,
             required: true,
             unique: true
