@@ -8,13 +8,13 @@ load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "mistralai/mistral-7b-instruct"   # fast + free-tier friendly
+MODEL = "mistralai/mistral-7b-instruct"   
 
 def generate(prompt):
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost",   # required by OpenRouter
+        "HTTP-Referer": "http://localhost",  
         "X-Title": "CodeClash AI"
     }
 
