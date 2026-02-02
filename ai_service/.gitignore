@@ -1,0 +1,9 @@
+
+
+ai_service/venv
+ai_service/__pycache__
+ai_service/.env
+ai_service/storage
+ai_service/*.pyc
+
+.DS_Store
