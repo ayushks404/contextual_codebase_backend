@@ -1,14 +1,29 @@
-from sentence_transformers import SentenceTransformer
+import requests
 import numpy as np
+import os
 
-model = SentenceTransformer("sentence-transformers/paraphrase-MiniLM-L3-v2")
+STAPI_URL = os.getenv("STAPI_URL", "http://stapi:8080/v1/embeddings")
 
 def generate_embeddings(texts):
-    """
-    texts: list[str] -> returns numpy.ndarray shape (n, dim) as float32
-    """
+    
+
     if isinstance(texts, str):
         texts = [texts]
-    vectors = model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
+    
+    response = requests.post(
+        STAPI_URL,
+        headers={"Content-Type": "application/json"},
+        json={
+            "input": texts,
+            "model": "all-MiniLM-L6-v2"
+        },
+        timeout=60
+    )
+
+    if response.status_code != 200:
+        raise Exception(f"STAPI error: {response.text}")
+
+
+    vectors = [item["embedding"] for item in response.json()["data"]]
     return np.array(vectors, dtype="float32")
 
